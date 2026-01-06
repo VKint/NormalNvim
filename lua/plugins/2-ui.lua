@@ -28,6 +28,18 @@ local is_android = vim.fn.isdirectory('/data') == 1 -- true if on android
 
 return {
 
+  --  vim oxocarbon theme
+  --  https://github.com/nyoom-engineering/oxocarbon.nvim
+  {
+    "nyoom-engineering/oxocarbon.nvim",
+    event = "User LoadColorSchemes",
+  },
+  --  vim enfocado theme
+  --  https://github.com/wuelnerdotexe/vim-enfocado
+  {
+    "wuelnerdotexe/vim-enfocado",
+    event = "User LoadColorSchemes",
+  },
   --  tokyonight [theme]
   --  https://github.com/folke/tokyonight.nvim
   {
@@ -41,7 +53,6 @@ return {
       },
     }
   },
-
   --  astrotheme [theme]
   --  https://github.com/AstroNvim/astrotheme
   {
@@ -69,207 +80,7 @@ return {
      opts = {}
    },
 
-  --  alpha-nvim [greeter]
-  --  https://github.com/goolord/alpha-nvim
-  {
-    "goolord/alpha-nvim",
-    cmd = "Alpha",
-    -- setup header and buttonts
-    opts = function()
-      local dashboard = require("alpha.themes.dashboard")
 
-      -- Header
-      -- dashboard.section.header.val = {
-      --   "                                                                     ",
-      --   "       ████ ██████           █████      ██                     ",
-      --   "      ███████████             █████                             ",
-      --   "      █████████ ███████████████████ ███   ███████████   ",
-      --   "     █████████  ███    █████████████ █████ ██████████████   ",
-      --   "    █████████ ██████████ █████████ █████ █████ ████ █████   ",
-      --   "  ███████████ ███    ███ █████████ █████ █████ ████ █████  ",
-      --   " ██████  █████████████████████ ████ █████ █████ ████ ██████ ",
-      -- }
-      -- dashboard.section.header.val = {
-      --   '                                        ▟▙            ',
-      --   '                                        ▝▘            ',
-      --   '██▃▅▇█▆▖  ▗▟████▙▖   ▄████▄   ██▄  ▄██  ██  ▗▟█▆▄▄▆█▙▖',
-      --   '██▛▔ ▝██  ██▄▄▄▄██  ██▛▔▔▜██  ▝██  ██▘  ██  ██▛▜██▛▜██',
-      --   '██    ██  ██▀▀▀▀▀▘  ██▖  ▗██   ▜█▙▟█▛   ██  ██  ██  ██',
-      --   '██    ██  ▜█▙▄▄▄▟▊  ▀██▙▟██▀   ▝████▘   ██  ██  ██  ██',
-      --   '▀▀    ▀▀   ▝▀▀▀▀▀     ▀▀▀▀       ▀▀     ▀▀  ▀▀  ▀▀  ▀▀',
-      -- }
-      -- dashboard.section.header.val = {
-      --   '                    ▟▙            ',
-      --   '                    ▝▘            ',
-      --   '██▃▅▇█▆▖  ██▄  ▄██  ██  ▗▟█▆▄▄▆█▙▖',
-      --   '██▛▔ ▝██  ▝██  ██▘  ██  ██▛▜██▛▜██',
-      --   '██    ██   ▜█▙▟█▛   ██  ██  ██  ██',
-      --   '██    ██   ▝████▘   ██  ██  ██  ██',
-      --   '▀▀    ▀▀     ▀▀     ▀▀  ▀▀  ▀▀  ▀▀',
-      -- }
-      -- Generated with https://www.fancytextpro.com/BigTextGenerator/Larry3D
-      -- dashboard.section.header.val = {
-      --   [[ __  __                  __  __                     ]],
-      --   [[/\ \/\ \                /\ \/\ \  __                ]],
-      --   [[\ \ `\\ \     __    ___ \ \ \ \ \/\_\    ___ ___    ]],
-      --   [[ \ \ , ` \  /'__`\ / __`\\ \ \ \ \/\ \ /' __` __`\  ]],
-      --   [[  \ \ \`\ \/\  __//\ \L\ \\ \ \_/ \ \ \/\ \/\ \/\ \ ]],
-      --   [[   \ \_\ \_\ \____\ \____/ \ `\___/\ \_\ \_\ \_\ \_\]],
-      --   [[    \/_/\/_/\/____/\/___/   `\/__/  \/_/\/_/\/_/\/_/]],
-      -- }
-      --  dashboard.section.header.val = {
-      --   '                                                     ',
-      --   '  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗ ',
-      --   '  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║ ',
-      --   '  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║ ',
-      --   '  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║ ',
-      --   '  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║ ',
-      --   '  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝ ',
-      --   '                                                     ',
-      -- }
-      -- dashboard.section.header.val = {
-      --   [[                __                ]],
-      --   [[  ___   __  __ /\_\    ___ ___    ]],
-      --   [[/' _ `\/\ \/\ \\/\ \ /' __` __`\  ]],
-      --   [[/\ \/\ \ \ \_/ |\ \ \/\ \/\ \/\ \ ]],
-      --   [[\ \_\ \_\ \___/  \ \_\ \_\ \_\ \_\]],
-      --   [[ \/_/\/_/\/__/    \/_/\/_/\/_/\/_/]],
-      -- }
-
-      if is_android then
-        dashboard.section.header.val = {
-          [[         __                ]],
-          [[ __  __ /\_\    ___ ___    ]],
-          [[/\ \/\ \\/\ \ /' __` __`\  ]],
-          [[\ \ \_/ |\ \ \/\ \/\ \/\ \ ]],
-          [[ \ \___/  \ \_\ \_\ \_\ \_\]],
-          [[  \/__/    \/_/\/_/\/_/\/_/]],
-        }
-      else
-        dashboard.section.header.val = {
-          [[888b      88                                                           88]],
-          [[8888b     88                                                           88]],
-          [[88 `8b    88                                                           88]],
-          [[88  `8b   88   ,adPPYba,   8b,dPPYba,  88,dPYba,,adPYba,   ,adPPYYba,  88]],
-          [[88   `8b  88  a8"     "8a  88P'   "Y8  88P'   "88"    "8a  ""     `Y8  88]],
-          [[88    `8b 88  8b       d8  88          88      88      88  ,adPPPPP88  88]],
-          [[88     `8888  "8a,   ,a8"  88          88      88      88  88,    ,88  88]],
-          [[88      `888   `"YbbdP"'   88          88      88      88  `"8bbdP"Y8  88]],
-          [[                                    __                ]],
-          [[                      ___   __  __ /\_\    ___ ___    ]],
-          [[                    /' _ `\/\ \/\ \\/\ \ /' __` __`\  ]],
-          [[                    /\ \/\ \ \ \_/ |\ \ \/\ \/\ \/\ \ ]],
-          [[                    \ \_\ \_\ \___/  \ \_\ \_\ \_\ \_\]],
-          [[                     \/_/\/_/\/__/    \/_/\/_/\/_/\/_/]],
-        }
-      end
-
-
-      local get_icon = require("base.utils").get_icon
-
-      dashboard.section.header.opts.hl = "DashboardHeader"
-      vim.cmd("highlight DashboardHeader guifg=#F7778F")
-
-      -- If yazi is not installed, don't show the button.
-      local is_yazi_installed = vim.fn.executable("ya") == 1
-      local yazi_button = dashboard.button("r", get_icon("GreeterYazi") .. " Yazi", "<cmd>Yazi<CR>")
-      if not is_yazi_installed then yazi_button = nil end
-
-      -- Buttons
-      dashboard.section.buttons.val = {
-        dashboard.button("n",
-          get_icon("GreeterNew") .. " New",
-          "<cmd>ene<CR>"),
-        dashboard.button("e",
-          get_icon("GreeterRecent") .. " Recent  ",
-          "<cmd>Telescope oldfiles<CR>"),
-        yazi_button,
-        dashboard.button("s",
-          get_icon("GreeterSessions") .. " Sessions",
-          "<cmd>SessionManager! load_session<CR>"
-        ),
-        dashboard.button("p",
-          get_icon("GreeterProjects") .. " Projects",
-          "<cmd>Telescope projects<CR>"),
-        dashboard.button("", ""),
-        dashboard.button("q", "   Quit", "<cmd>exit<CR>"),
-      }
-
-      -- Vertical margins
-      dashboard.config.layout[1].val =
-          vim.fn.max { 2, vim.fn.floor(vim.fn.winheight(0) * 0.10) } -- Above header
-      dashboard.config.layout[3].val =
-          vim.fn.max { 2, vim.fn.floor(vim.fn.winheight(0) * 0.10) } -- Above buttons
-
-      -- Disable autocmd and return
-      dashboard.config.opts.noautocmd = true
-      return dashboard
-    end,
-    config = function(_, opts)
-      -- Footer
-      require("alpha").setup(opts.config)
-      vim.api.nvim_create_autocmd("User", {
-        pattern = "LazyVimStarted",
-        desc = "Add Alpha dashboard footer",
-        once = true,
-        callback = function()
-          local  footer_icon = require("base.utils").get_icon("GreeterPlug")
-          local stats = require("lazy").stats()
-          stats.real_cputime = not is_windows
-          local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
-          opts.section.footer.val = {
-            " ",
-            " ",
-            " ",
-            "Loaded " .. stats.loaded .. " plugins " .. footer_icon .. " in " .. ms .. "ms",
-            ".............................",
-          }
-          opts.section.footer.opts.hl = "DashboardFooter"
-          vim.cmd("highlight DashboardFooter guifg=#D29B68")
-          pcall(vim.cmd.AlphaRedraw)
-        end,
-      })
-    end,
-  },
-
-  --  [notifications]
-  --  https://github.com/rcarriga/nvim-notify
-  {
-    "rcarriga/nvim-notify",
-    event = "User BaseDefered",
-    opts = function()
-      local fps
-      if is_android then fps = 30 else fps = 244 end
-
-      return {
-        timeout = 2500,
-        fps = fps,
-        max_height = function() return math.floor(vim.o.lines * 0.75) end,
-        max_width = function() return math.floor(vim.o.columns * 0.75) end,
-        on_open = function(win)
-          -- enable markdown support on notifications
-          vim.api.nvim_win_set_config(win, { zindex = 175 })
-          if not vim.g.notifications_enabled then
-            vim.api.nvim_win_close(win, true)
-          end
-          if not package.loaded["nvim-treesitter"] then
-            pcall(require, "nvim-treesitter")
-          end
-          vim.wo[win].conceallevel = 3
-          local buf = vim.api.nvim_win_get_buf(win)
-          if not pcall(vim.treesitter.start, buf, "markdown") then
-            vim.bo[buf].syntax = "markdown"
-          end
-          vim.wo[win].spell = false
-        end,
-      }
-    end,
-    config = function(_, opts)
-      local notify = require("notify")
-      notify.setup(opts)
-      vim.notify = notify
-    end,
-  },
 
   --  mini.indentscope [guides]
   --  https://github.com/nvim-mini/mini.indentscope
@@ -358,8 +169,7 @@ return {
                     "dashboard",
                     "Outline",
                     "aerial",
-                    "rnvimr",
-                    "yazi"
+                    "rnvimr"
                   },
                 }, args.buf)
             return is_disabled
@@ -510,7 +320,6 @@ return {
       telescope.setup(opts)
       -- Here we define the Telescope extension for all plugins.
       -- If you delete a plugin, you can also delete its Telescope extension.
-      if utils.is_available("nvim-notify") then telescope.load_extension("notify") end
       if utils.is_available("telescope-fzf-native.nvim") then telescope.load_extension("fzf") end
       if utils.is_available("telescope-undo.nvim") then telescope.load_extension("undo") end
       if utils.is_available("project.nvim") then telescope.load_extension("projects") end
@@ -534,47 +343,6 @@ return {
     }
   },
 
-  --  Noice.nvim [better cmd/search line]
-  --  https://github.com/folke/noice.nvim
-  --  We use it for:
-  --  * cmdline: Display treesitter for :
-  --  * search: Display a magnifier instead of /
-  --
-  --  We don't use it for:
-  --  * LSP status: We use a heirline component for this.
-  --  * Search results: We use a heirline component for this.
-  {
-    "folke/noice.nvim",
-    event = "User BaseDefered",
-    opts = function()
-      local enable_conceal = false          -- Hide command text if true
-      return {
-        presets = { bottom_search = true }, -- The kind of popup used for /
-        cmdline = {
-          view = "cmdline",                 -- The kind of popup used for :
-          format = {
-            cmdline = { conceal = enable_conceal },
-            search_down = { conceal = enable_conceal },
-            search_up = { conceal = enable_conceal },
-            filter = { conceal = enable_conceal },
-            lua = { conceal = enable_conceal },
-            help = { conceal = enable_conceal },
-            input = { conceal = enable_conceal },
-          }
-        },
-
-        -- Disable every other noice feature
-        messages = { enabled = false },
-        lsp = {
-          hover = { enabled = false },
-          signature = { enabled = false },
-          progress = { enabled = false },
-          message = { enabled = false },
-          smart_move = { enabled = false },
-        },
-      }
-    end
-  },
 
   --  UI icons [icons - ui]
   --  https://github.com/nvim-tree/nvim-web-devicons
@@ -646,50 +414,6 @@ return {
     },
   },
 
-  --  mini.animate [animations]
-  --  https://github.com/nvim-mini/mini.animate
-  --  HINT: if one of your personal keymappings fail due to mini.animate, try to
-  --        disable it during the keybinding using vim.g.minianimate_disable = true
-  {
-    "nvim-mini/mini.animate",
-    event = "User BaseFile",
-    enabled = not is_android,
-    opts = function()
-      -- don't use animate when scrolling with the mouse
-      local mouse_scrolled = false
-      for _, scroll in ipairs { "Up", "Down" } do
-        local key = "<ScrollWheel" .. scroll .. ">"
-        vim.keymap.set({ "", "i" }, key, function()
-          mouse_scrolled = true
-          return key
-        end, { expr = true })
-      end
-
-      local animate = require("mini.animate")
-      return {
-        open = { enable = false }, -- true causes issues on nvim-spectre
-        resize = {
-          timing = animate.gen_timing.linear { duration = 33, unit = "total" },
-        },
-        scroll = {
-          timing = animate.gen_timing.linear { duration = 50, unit = "total" },
-          subscroll = animate.gen_subscroll.equal {
-            predicate = function(total_scroll)
-              if mouse_scrolled then
-                mouse_scrolled = false
-                return false
-              end
-              return total_scroll > 1
-            end,
-          },
-        },
-        cursor = {
-          enable = false, -- We don't want cursor ghosting
-          timing = animate.gen_timing.linear { duration = 26, unit = "total" },
-        },
-      }
-    end,
-  },
 
   --  highlight-undo
   --  https://github.com/tzachar/highlight-undo.nvim

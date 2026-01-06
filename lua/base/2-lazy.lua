@@ -6,15 +6,7 @@
 --    Functions:
 --      -> git_clone_lazy                → download lazy from git if necessary.
 --      -> after_instaling_plugins_load  → instantly try to load the plugins passed.
---      -> get_lazy_spec                 → load and get the plugins file.
 --      -> setup_lazy                    → pass the plugins file to lazy and run setup().
-
--- Lazy updater options
--- Use the same values you have in the plugin `distroupdate.nvim`
-local updates_config = {
-  channel = "stable",                  -- 'nightly', or 'stable'
-  snapshot_file = "lazy_snapshot.lua", -- plugins lockfile created by running the command ':DistroFreezePluginVersions' provided by `distroupdate.nvim`.
-}
 
 --- Download 'lazy' from its git repository if lazy_dir doesn't exists already.
 --- Note: This function should ONLY run the first time you start nvim.
@@ -57,34 +49,12 @@ local function after_installing_plugins_load(plugins)
   })
 end
 
---- load `<config_dir>/lua/lazy_snapshot.lua` and return it as table.
---- @return table spec A table you can pass to the `spec` option of lazy.
-local function get_lazy_spec()
-  local snapshot_filename = vim.fn.fnamemodify(updates_config.snapshot_file, ":t:r")
-  local pin_plugins = updates_config.channel == "stable"
-  local snapshot_file_exists = vim.uv.fs_stat(
-    vim.fn.stdpath("config")
-    .. "/lua/"
-    .. snapshot_filename
-    .. ".lua"
-  )
-  local spec = pin_plugins
-      and snapshot_file_exists
-      and { { import = snapshot_filename} }
-    or {}
-  vim.list_extend(spec, { { import = "plugins" } })
-
-  return spec
-end
-
 --- Require lazy and pass the spec.
 --- @param lazy_dir string used to specify neovim where to find the lazy_dir.
 local function setup_lazy(lazy_dir)
-  local spec = get_lazy_spec()
-
   vim.opt.rtp:prepend(lazy_dir)
   require("lazy").setup({
-    spec = spec,
+    spec = { { import = "plugins" } },
     defaults = { lazy = true },
     performance = {
       rtp = { -- Disable unnecessary nvim features to speed up startup.

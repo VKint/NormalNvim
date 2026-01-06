@@ -17,7 +17,6 @@
 --      -> Git
 --      -> DAP
 --      -> Telescope
---      -> Nvim-lightbulb
 --      -> Alpha
 --      -> Mason
 --      -> Render-markdown
@@ -111,17 +110,6 @@ return {
 
   -- Telescope
   PromptPrefix = "❯",
-
-  -- Nvim-lightbulb
-  Lightbulb = "💡",
-
-  -- Alpha
-  GreeterNew = "📄",
-  GreeterRecent = "🌺",
-  GreeterYazi = "🦆",
-  GreeterSessions = "🔎",
-  GreeterProjects = "💼",
-  GreeterPlug = "",
 
   -- Mason
   MasonInstalled = "✓",

@@ -62,6 +62,81 @@ local ui = require("base.utils.ui")
 local maps = require("base.utils").get_mappings_template()
 local is_android = vim.fn.isdirectory('/data') == 1 -- true if on android
 
+-- project commands (build/run/debug)
+local function get_project_cmd(mode)
+  local dir = vim.fn.expand("%:p:h")
+  while dir ~= "/" do
+    local name = vim.fn.fnamemodify(dir, ":t")
+    -- rust
+    if vim.fn.filereadable(dir .. "/Cargo.toml") == 1 then
+      if mode == "build" then return "cd " .. dir .. " && cargo build"
+      elseif mode == "debug" then return "cd " .. dir .. " && cargo build && lldb ./target/debug/" .. name
+      else return "cd " .. dir .. " && cargo run" end
+    -- go
+    elseif vim.fn.filereadable(dir .. "/go.mod") == 1 then
+      if mode == "build" then return "cd " .. dir .. " && go build"
+      elseif mode == "debug" then return "cd " .. dir .. " && go build -gcflags='all=-N -l' && lldb ./" .. name
+      else return "cd " .. dir .. " && go run ." end
+    -- zig
+    elseif vim.fn.filereadable(dir .. "/build.zig") == 1 then
+      if mode == "build" then return "cd " .. dir .. " && zig build"
+      elseif mode == "debug" then return "cd " .. dir .. " && zig build && lldb ./zig-out/bin/*"
+      else return "cd " .. dir .. " && zig build run" end
+    -- odin
+    elseif vim.fn.isdirectory(dir .. "/src") == 1 and vim.fn.glob(dir .. "/src/*.odin") ~= "" then
+      if mode == "build" then return "cd " .. dir .. " && odin build src/ -out:main -debug"
+      elseif mode == "debug" then return "cd " .. dir .. " && odin build src/ -debug -out:main && lldb ./main"
+      else return "cd " .. dir .. " && odin run src/ -out:main -debug" end
+    -- c/c++ with makefile
+    elseif vim.fn.filereadable(dir .. "/Makefile") == 1 then
+      if mode == "build" then return "cd " .. dir .. " && make"
+      elseif mode == "debug" then return "cd " .. dir .. " && make && lldb ./main"
+      else return "cd " .. dir .. " && make run" end
+    -- cmake
+    elseif vim.fn.filereadable(dir .. "/CMakeLists.txt") == 1 then
+      if mode == "build" then return "cd " .. dir .. " && cmake -B build && cmake --build build"
+      elseif mode == "debug" then return "cd " .. dir .. " && cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build && lldb ./build/main"
+      else return "cd " .. dir .. " && cmake -B build && cmake --build build && ./build/main" end
+    -- node/bun
+    elseif vim.fn.filereadable(dir .. "/package.json") == 1 then
+      local runner = vim.fn.filereadable(dir .. "/bun.lockb") == 1 and "bun" or "npm"
+      if mode == "build" then return "cd " .. dir .. " && " .. runner .. " run build"
+      else return "cd " .. dir .. " && " .. runner .. " start" end
+    -- dotnet
+    elseif vim.fn.glob(dir .. "/*.csproj") ~= "" then
+      if mode == "build" then return "cd " .. dir .. " && dotnet build"
+      else return "cd " .. dir .. " && dotnet run" end
+    -- python
+    elseif vim.fn.filereadable(dir .. "/main.py") == 1 then
+      return "cd " .. dir .. " && python main.py"
+    elseif vim.fn.filereadable(dir .. "/pyproject.toml") == 1 then
+      return "cd " .. dir .. " && python -m " .. name
+    -- lua
+    elseif vim.fn.filereadable(dir .. "/main.lua") == 1 then
+      return "cd " .. dir .. " && lua main.lua"
+    -- godot
+    elseif vim.fn.filereadable(dir .. "/project.godot") == 1 then
+      return "cd " .. dir .. " && godot --path . --debug"
+    end
+    dir = vim.fn.fnamemodify(dir, ":h")
+  end
+  return "echo 'Unknown project type'"
+end
+
+-- single reusable terminal via ToggleTerm
+local function run_in_term(cmd)
+  vim.cmd("TermExec cmd='" .. cmd .. "' direction=horizontal size=12 go_back=0")
+end
+
+maps.n["<F4>"] = { function() run_in_term(get_project_cmd("build")) end, desc = "Build project" }
+maps.n["<F5>"] = { function() run_in_term(get_project_cmd("run")) end, desc = "Run project" }
+maps.n["<F6>"] = { function() require("dap").continue() end, desc = "Start Debugger (DAP)" }
+maps.n["<leader>r"] = { function() run_in_term(get_project_cmd("run")) end, desc = "Run project" }
+maps.n["<leader>k"] = { "<cmd>ToggleTerm<cr>", desc = "Toggle terminal" }
+
+-- escape terminal mode with Esc
+maps.t["<Esc>"] = { "<C-\\><C-n>", desc = "Exit terminal mode" }
+
 -- -------------------------------------------------------------------------
 --
 -- ## Base bindings ########################################################
@@ -660,16 +735,6 @@ if vim.fn.executable "gitui" == 1 then -- if gitui exists, show it
   }
 end
 
--- file browsers ------------------------------------
--- yazi
-if is_available("yazi.nvim") and vim.fn.executable("yazi") == 1 then
-  maps.n["<leader>r"] = {
-    -- TODO: use 'Yazi toggle' instead once yazi v0.4.0 is released.
-    "<cmd>Yazi<CR>",
-    desc = "File browser",
-  }
-end
-
 -- neotree
 if is_available("neo-tree.nvim") then
   maps.n["<leader>e"] = { "<cmd>Neotree toggle<cr>", desc = "Neotree" }
@@ -1009,34 +1074,6 @@ if is_available("telescope.nvim") then
     }
   end
 
-  -- extra - compiler
-  if is_available("compiler.nvim") and is_available("overseer.nvim") then
-    maps.n["<leader>m"] = icons.c
-    maps.n["<leader>mm"] = {
-      function() vim.cmd("CompilerOpen") end,
-      desc = "Open compiler",
-    }
-    maps.n["<leader>mr"] = {
-      function() vim.cmd("CompilerRedo") end,
-      desc = "Compiler redo",
-    }
-    maps.n["<leader>mt"] = {
-      function() vim.cmd("CompilerToggleResults") end,
-      desc = "compiler results",
-    }
-    maps.n["<F6>"] = {
-      function() vim.cmd("CompilerOpen") end,
-      desc = "Open compiler",
-    }
-    maps.n["<S-F6>"] = {
-      function() vim.cmd("CompilerRedo") end,
-      desc = "Compiler redo",
-    }
-    maps.n["<S-F7>"] = {
-      function() vim.cmd("CompilerToggleResults") end,
-      desc = "compiler resume",
-    }
-  end
 end
 
 -- toggleterm.nvim ----------------------------------------------------------
@@ -1076,35 +1113,35 @@ if is_available("nvim-dap") then
   maps.n["<leader>d"] = icons.d
   maps.x["<leader>d"] = icons.d
 
-  -- F keys
-  maps.n["<F5>"] = {
-    function()
-      require("dap").continue()
-    end,
-    desc = "Debugger: Start"
-  }
-  maps.n["<S-F5>"] =
-  { function() require("dap").terminate() end, desc = "Debugger: Stop" }
-  maps.n["<C-F5>"] = {
-    function() require("dap").restart_frame() end, desc = "Debugger: Restart" }
-  maps.n["<F9>"] = {
-    function() require("dap").toggle_breakpoint() end, desc = "Debugger: Toggle Breakpoint" }
-  maps.n["<S-F9>"] = {
-    function()
-      vim.ui.input({ prompt = "Condition: " }, function(condition)
-        if condition then require("dap").set_breakpoint(condition) end
-      end)
-    end,
-    desc = "Debugger: Conditional Breakpoint",
-  }
-  maps.n["<F10>"] =
-  { function() require("dap").step_over() end, desc = "Debugger: Step Over" }
-  maps.n["<S-F10>"] =
-  { function() require("dap").step_back() end, desc = "Debugger: Step Back" }
-  maps.n["<F11>"] =
-  { function() require("dap").step_into() end, desc = "Debugger: Step Into" }
-  maps.n["<S-F11>"] =
-  { function() require("dap").step_out() end, desc = "Debugger: Step Out" }
+  -- F keys (Disabled in favor of custom project commands)
+  -- maps.n["<F5>"] = {
+  --   function()
+  --     require("dap").continue()
+  --   end,
+  --   desc = "Debugger: Start"
+  -- }
+  -- maps.n["<S-F5>"] =
+  -- { function() require("dap").terminate() end, desc = "Debugger: Stop" }
+  -- maps.n["<C-F5>"] = {
+  --   function() require("dap").restart_frame() end, desc = "Debugger: Restart" }
+  -- maps.n["<F9>"] = {
+  --   function() require("dap").toggle_breakpoint() end, desc = "Debugger: Toggle Breakpoint" }
+  -- maps.n["<S-F9>"] = {
+  --   function()
+  --     vim.ui.input({ prompt = "Condition: " }, function(condition)
+  --       if condition then require("dap").set_breakpoint(condition) end
+  --     end)
+  --   end,
+  --   desc = "Debugger: Conditional Breakpoint",
+  -- }
+  -- maps.n["<F10>"] =
+  -- { function() require("dap").step_over() end, desc = "Debugger: Step Over" }
+  -- maps.n["<S-F10>"] =
+  -- { function() require("dap").step_back() end, desc = "Debugger: Step Back" }
+  -- maps.n["<F11>"] =
+  -- { function() require("dap").step_into() end, desc = "Debugger: Step Into" }
+  -- maps.n["<S-F11>"] =
+  -- { function() require("dap").step_out() end, desc = "Debugger: Step Out" }
 
   -- Space + d
   maps.n["<leader>db"] = {
@@ -1263,7 +1300,7 @@ end
 
 -- code docmentation [docs] -------------------------------------------------
 
-if is_available("markdown-preview.nvim") or is_available("markmap.nvim") or is_available("dooku.nvim") then
+if is_available("markdown-preview.nvim") or is_available("dooku.nvim") then
   maps.n["<leader>D"] = icons.dc
 
   -- Markdown preview
@@ -1275,18 +1312,18 @@ if is_available("markdown-preview.nvim") or is_available("markmap.nvim") or is_a
   end
 
   -- Markdown Mindmap
-  if is_available("markmap.nvim") then
-    maps.n["<leader>Dm"] = {
-      function()
-        if is_android then
-          vim.cmd("MarkmapWatch")
-        else
-          vim.cmd("MarkmapOpen")
-        end
-      end,
-      desc = "Markmap",
-    }
-  end
+  -- if is_available("markmap.nvim") then
+  --   maps.n["<leader>Dm"] = {
+  --     function()
+  --       if is_android then
+  --         vim.cmd("MarkmapWatch")
+  --       else
+  --         vim.cmd("MarkmapOpen")
+  --       end
+  --     end,
+  --     desc = "Markmap",
+  --   }
+  -- end
 
   if is_available("dooku.nvim") then
     maps.n["<leader>Dd"] = {
@@ -1297,12 +1334,12 @@ if is_available("markdown-preview.nvim") or is_available("markmap.nvim") or is_a
 end
 
 -- [neural] -----------------------------------------------------------------
-if is_available("neural") or is_available("copilot") then
-  maps.n["<leader>a"] = {
-    function() require("neural").prompt() end,
-    desc = "Ask chatgpt",
-  }
-end
+-- if is_available("neural") or is_available("copilot") then
+--   maps.n["<leader>a"] = {
+--     function() require("neural").prompt() end,
+--     desc = "Ask chatgpt",
+--   }
+-- end
 
 -- hop.nvim ----------------------------------------------------------------
 if is_available("hop.nvim") then
@@ -1376,13 +1413,6 @@ function M.lsp_mappings(client, bufnr)
   if is_available("none-ls.nvim") then
     lsp_mappings.n["<leader>lI"] = { "<cmd>NullLsInfo<cr>", desc = "None-ls information" }
   end
-
-  -- Code actions
-  lsp_mappings.n["<leader>la"] = {
-    function() vim.lsp.buf.code_action() end,
-    desc = "LSP code action",
-  }
-  lsp_mappings.v["<leader>la"] = lsp_mappings.n["<leader>la"]
 
   -- Codelens
   utils.add_autocmds_to_buffer("lsp_codelens_refresh", bufnr, {

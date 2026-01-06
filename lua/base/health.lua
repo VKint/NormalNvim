@@ -65,16 +65,6 @@ function M.check()
       msg = "Used by nvim-spectre to install oxi. Also by dooku.nvim to generate rust html docs.",
     },
     {
-      cmd = { "yazi" },
-      type = "error",
-      msg = "Used to enable yazi file browser.",
-    },
-    {
-      cmd = { "markmap" },
-      type = "warn",
-      msg = "Used by markmap.nvim. Make sure yarn is in your PATH. To learn how check markmap.nvim github page.",
-    },
-    {
       cmd = { "fd" },
       type = "error",
       msg = "Used for nvim-spectre to find using fd.",

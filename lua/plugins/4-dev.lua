@@ -17,7 +17,6 @@
 --       ## CODE DOCUMENTATION
 --       -> dooku.nvim                     [html doc generator]
 --       -> markdown-preview.nvim          [markdown previewer]
---       -> markmap.nvim                   [markdown mindmap]
 
 --       ## ARTIFICIAL INTELLIGENCE
 --       -> neural                         [chatgpt code generator]
@@ -307,16 +306,6 @@ return {
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
   },
 
-  --  [markdown markmap]
-  --  https://github.com/zeioth/markmap.nvim
-  --  Important: Make sure you have yarn in your PATH before running markmap.
-  {
-    "zeioth/markmap.nvim",
-    build = "yarn global add markmap-cli",
-    cmd = { "MarkmapOpen", "MarkmapSave", "MarkmapWatch", "MarkmapWatchStop" },
-    config = function(_, opts) require("markmap").setup(opts) end,
-  },
-
   --  ARTIFICIAL INTELLIGENCE  -------------------------------------------------
   --  neural [chatgpt code generator]
   --  https://github.com/dense-analysis/neural
@@ -324,23 +313,23 @@ return {
   --  NOTE: This plugin is disabled by default.
   --        To enable it set the next env var in your OS:
   --        OPENAI_API_KEY="my_key_here"
-  {
-    "dense-analysis/neural",
-    cmd = { "Neural" },
-    config = function()
-      require("neural").setup {
-        source = {
-          openai = {
-            api_key = vim.env.OPENAI_API_KEY,
-          },
-        },
-        ui = {
-          prompt_icon = require("base.utils").get_icon("PromptPrefix"),
-        },
-      }
-    end,
-  },
-
+  -- {
+  --   "dense-analysis/neural",
+  --   cmd = { "Neural" },
+  --   config = function()
+  --     require("neural").setup {
+  --       source = {
+  --         openai = {
+  --           api_key = vim.env.OPENAI_API_KEY,
+  --         },
+  --       },
+  --       ui = {
+  --         prompt_icon = require("base.utils").get_icon("PromptPrefix"),
+  --       },
+  --     }
+  --   end,
+  -- },
+  --
   --  copilot [github code suggestions]
   --  https://github.com/zbirenbaum/copilot.lua
   --  Write to get AI suggestion for your code on the fly.
@@ -348,11 +337,42 @@ return {
   --  NOTE: This plugin is disabled by default.
   --        To enable it run ':Copilot auth'
   --        and login using your GitHub account.
-  {
-    "zbirenbaum/copilot.lua",
-    event = "User BaseDefered", -- Ensure it loads before mason-lspconfig.
-    opts = {},
-  },
+  -- {
+  --  "zbirenbaum/copilot.lua",
+  --  event = "User BaseDefered", -- Ensure it loads before mason-lspconfig.
+  --  opts = {},
+  --},
+
+  -- opencode.nvim [ai assistant]
+  -- https://github.com/NickvanDyke/opencode.nvim
+  -- {
+  --   "NickvanDyke/opencode.nvim",
+  --   event = "User BaseDefered",
+  --   dependencies = {
+  --     { "folke/snacks.nvim", opts = { input = {}, picker = {}, terminal = {} } },
+  --   },
+  --   config = function()
+  --     vim.o.autoread = true
+  --
+  --     local maps = require("base.utils").get_mappings_template()
+  --     maps.n["<leader>a"] = { function() require("opencode").ask("@this: ", { submit = true }) end, desc = "Ask opencode" }
+  --     maps.x["<leader>a"] = { function() require("opencode").ask("@this: ", { submit = true }) end, desc = "Ask opencode" }
+  --     maps.n["<leader>o"] = { function() require("opencode").select() end, desc = "Execute opencode action" }
+  --     maps.x["<leader>o"] = { function() require("opencode").select() end, desc = "Execute opencode action" }
+  --     maps.n["<C-.>"] = { function() require("opencode").toggle() end, desc = "Toggle opencode" }
+  --     maps.t["<C-.>"] = { function() require("opencode").toggle() end, desc = "Toggle opencode" }
+  --
+  --     maps.n["go"] = { function() return require("opencode").operator("@this ") end, expr = true, desc = "Add range to opencode" }
+  --     maps.x["go"] = { function() return require("opencode").operator("@this ") end, expr = true, desc = "Add range to opencode" }
+  --     maps.n["goo"] = { function() return require("opencode").operator("@this ") .. "_" end, expr = true, desc = "Add line to opencode" }
+  --
+  --     -- Support Shift+Enter for newlines and ESC for cancel
+  --     maps.t["<S-CR>"] = { "<C-j>" }
+  --     maps.t["<ESC>"] = { "<C-c>" }
+  --
+  --     require("base.utils").set_mappings(maps)
+  --   end,
+  -- },
 
   -- [guess-indent]
   -- https://github.com/NMAC427/guess-indent.nvim
@@ -364,20 +384,6 @@ return {
     opts = {}
   },
 
-  --  COMPILER ----------------------------------------------------------------
-  --  compiler.nvim [compiler]
-  --  https://github.com/zeioth/compiler.nvim
-  {
-    "zeioth/compiler.nvim",
-    cmd = {
-      "CompilerOpen",
-      "CompilerToggleResults",
-      "CompilerRedo",
-      "CompilerStop"
-    },
-    dependencies = { "stevearc/overseer.nvim" },
-    opts = {},
-  },
 
   --  overseer [task runner]
   --  https://github.com/stevearc/overseer.nvim
@@ -433,6 +439,38 @@ return {
     event = "User BaseFile",
     config = function()
       local dap = require("dap")
+
+      -- Helper to auto-detect executable path
+      local function get_executable()
+        local cwd = vim.fn.getcwd()
+        local name = vim.fn.fnamemodify(cwd, ":t")
+
+        -- Odin
+        if vim.fn.glob(cwd .. "/src/*.odin") ~= "" then
+          return cwd .. "/main"
+        -- Rust
+        elseif vim.fn.filereadable(cwd .. "/Cargo.toml") == 1 then
+          return cwd .. "/target/debug/" .. name
+        -- Zig
+        elseif vim.fn.filereadable(cwd .. "/build.zig") == 1 then
+          -- Best guess for Zig, might need adjustment based on build.zig
+          local bin = vim.fn.glob(cwd .. "/zig-out/bin/*")
+          if bin ~= "" then return bin end
+          return cwd .. "/zig-out/bin/" .. name
+        -- C/C++ (Makefile or just gcc)
+        elseif vim.fn.filereadable(cwd .. "/Makefile") == 1 then
+          return cwd .. "/main"
+        -- CMake
+        elseif vim.fn.filereadable(cwd .. "/CMakeLists.txt") == 1 then
+          return cwd .. "/build/main"
+        -- Go
+        elseif vim.fn.filereadable(cwd .. "/go.mod") == 1 then
+           return cwd .. "/" .. name
+        end
+
+        -- Fallback: Ask user
+        return vim.fn.input('Path to executable: ', cwd .. '/', 'file')
+      end
 
       -- C#
       dap.adapters.coreclr = {
@@ -504,9 +542,7 @@ return {
           name = 'Launch',
           type = 'codelldb',
           request = 'launch',
-          program = function() -- Ask the user what executable wants to debug
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/bin/program', 'file')
-          end,
+          program = get_executable,
           cwd = '${workspaceFolder}',
           stopOnEntry = false,
           args = {},
@@ -516,15 +552,26 @@ return {
       -- C++
       dap.configurations.cpp = dap.configurations.c
 
+      -- Odin
+      dap.configurations.odin = {
+        {
+          name = 'Launch',
+          type = 'codelldb',
+          request = 'launch',
+          program = get_executable,
+          cwd = '${workspaceFolder}',
+          stopOnEntry = false,
+          args = {},
+        },
+      }
+
       -- Rust
       dap.configurations.rust = {
         {
           name = 'Launch',
           type = 'codelldb',
           request = 'launch',
-          program = function() -- Ask the user what executable wants to debug
-            return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/bin/program', 'file')
-          end,
+          program = get_executable,
           cwd = '${workspaceFolder}',
           stopOnEntry = false,
           args = {},
@@ -909,5 +956,4 @@ return {
       })
     end,
   },
-
-} -- end of return
+}

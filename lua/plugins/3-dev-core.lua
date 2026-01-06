@@ -125,10 +125,6 @@ return {
         },
       },
     },
-    config = function(_, opts)
-      -- calling setup() here is necessary to enable conceal and some features.
-      require("nvim-treesitter.configs").setup(opts)
-    end,
   },
 
   --  render-markdown.nvim [normal mode markdown]
@@ -219,6 +215,7 @@ return {
         'build.gradle',
         'build.gradle.kts',
         '.git',
+        'ols.json',
       },
     },
     config = function(_, opts)
@@ -251,10 +248,25 @@ return {
     "mason-org/mason-lspconfig.nvim",
     dependencies = { "neovim/nvim-lspconfig" },
     event = "User BaseFile",
-    opts = {},
+    opts = {
+      ensure_installed = { "pyright" },
+    },
     config = function(_, opts)
-      require("mason-lspconfig").setup(opts)
+      local mlsp = require("mason-lspconfig")
+      mlsp.setup(opts)
       utils.apply_lsp_diagnostic_defaults() -- Only needs to be called once.
+
+      -- Automatic setup for all installed servers
+      if pcall(require, "mason-lspconfig") and mlsp.setup_handlers then
+        mlsp.setup_handlers {
+          function(server_name)
+             require("lspconfig")[server_name].setup({})
+          end,
+        }
+      else
+        -- Fallback: Manual setup for pyright
+        require("lspconfig").pyright.setup({})
+      end
 
       -- Apply the lsp mappings to each client in each buffer.
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -385,7 +397,6 @@ return {
         -- in 'mods', write the word you use to require the module.
         -- in 'words' write words that trigger loading a lazydev path (optionally).
         { path = "lazy.nvim", mods = { "lazy" } },
-        { path = "yazi.nvim", mods = { "yazi" } },
         { path = "project.nvim", mods = { "project_nvim", "telescope" } },
         { path = "trim.nvim", mods = { "trim" } },
         { path = "stickybuf.nvim", mods = { "stickybuf" } },
@@ -405,7 +416,6 @@ return {
         { path = "hop.nvim", mods = { "hop", "hop-treesitter", "hop-yank" } },
         { path = "nvim-autopairs", mods = { "nvim-autopairs" } },
         { path = "lsp_signature", mods = { "lsp_signature" } },
-        { path = "nvim-lightbulb", mods = { "nvim-lightbulb" } },
         { path = "hot-reload.nvim", mods = { "hot-reload" } },
         { path = "distroupdate.nvim", mods = { "distroupdate" } },
 
@@ -458,7 +468,6 @@ return {
         { path = "litee-calltree.nvim", mods = { "litee" } },
         { path = "dooku.nvim", mods = { "dooku" } },
         { path = "markdown-preview.nvim", mods = { "mkdp" } }, -- has vimscript
-        { path = "markmap.nvim", mods = { "markmap" } },
         { path = "neural", mods = { "neural" } },
         { path = "copilot", mods = { "copilot" } },
         { path = "guess-indent.nvim", mods = { "guess-indent" } },
